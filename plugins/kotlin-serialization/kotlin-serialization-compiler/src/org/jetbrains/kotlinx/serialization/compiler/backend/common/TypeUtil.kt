@@ -77,7 +77,7 @@ fun AbstractSerialGenerator.getSerialTypeInfo(property: SerializableProperty): S
     }
 }
 
-fun AbstractSerialGenerator.allSealedSerializableSubclassesFor(
+fun AbstractSerialGenerator?.allSealedSerializableSubclassesFor(
     klass: ClassDescriptor,
     module: ModuleDescriptor
 ): Pair<List<KotlinType>, List<ClassDescriptor>> {
@@ -117,7 +117,7 @@ fun analyzeSpecialSerializers(
     else -> null
 }
 
-fun AbstractSerialGenerator.findTypeSerializerOrContextUnchecked(
+fun AbstractSerialGenerator?.findTypeSerializerOrContextUnchecked(
     module: ModuleDescriptor,
     kType: KotlinType
 ): ClassDescriptor? {
@@ -125,12 +125,12 @@ fun AbstractSerialGenerator.findTypeSerializerOrContextUnchecked(
     if (kType.isTypeParameter()) return null
     if (kType.isMarkedNullable) return findTypeSerializerOrContextUnchecked(module, kType.makeNotNullable())
     annotations.serializableWith(module)?.let { return it.toClassDescriptor }
-    additionalSerializersInScopeOfCurrentFile[kType.toClassDescriptor]?.let { return it }
-    if (kType in contextualKClassListInCurrentFile) return module.getClassFromSerializationPackage(SpecialBuiltins.contextSerializer)
+    this?.additionalSerializersInScopeOfCurrentFile?.get(kType.toClassDescriptor)?.let { return it }
+    if (this?.contextualKClassListInCurrentFile?.contains(kType) == true) return module.getClassFromSerializationPackage(SpecialBuiltins.contextSerializer)
     return analyzeSpecialSerializers(module, annotations) ?: findTypeSerializer(module, kType)
 }
 
-fun AbstractSerialGenerator.findTypeSerializerOrContext(
+fun AbstractSerialGenerator?.findTypeSerializerOrContext(
     module: ModuleDescriptor,
     kType: KotlinType,
     sourceElement: PsiElement? = null

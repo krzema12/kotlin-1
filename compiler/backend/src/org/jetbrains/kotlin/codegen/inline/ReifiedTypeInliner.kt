@@ -57,10 +57,11 @@ class ReifiedTypeInliner<KT : KotlinTypeMarker>(
     private val unifiedNullChecks: Boolean,
 ) {
     enum class OperationKind {
-        NEW_ARRAY, AS, SAFE_AS, IS, JAVA_CLASS, ENUM_REIFIED, TYPE_OF;
+        NEW_ARRAY, AS, SAFE_AS, IS, JAVA_CLASS, ENUM_REIFIED, TYPE_OF, PLUGIN_DEFINED;
 
         val id: Int get() = ordinal
     }
+
 
     interface IntrinsicsSupport<KT : KotlinTypeMarker> {
         fun putClassInstance(v: InstructionAdapter, type: KT)
@@ -68,6 +69,13 @@ class ReifiedTypeInliner<KT : KotlinTypeMarker>(
         fun generateTypeParameterContainer(v: InstructionAdapter, typeParameter: TypeParameterMarker)
 
         fun toKotlinType(type: KT): KotlinType
+
+        fun applyPluginDefinedReifiedOperationMarker(
+            insn: MethodInsnNode,
+            instructions: InsnList,
+            type: KotlinType,
+            asmType: Type
+        ): Boolean = false
     }
 
     companion object {
@@ -174,6 +182,7 @@ class ReifiedTypeInliner<KT : KotlinTypeMarker>(
                     OperationKind.JAVA_CLASS -> processJavaClass(insn, asmType)
                     OperationKind.ENUM_REIFIED -> processSpecialEnumFunction(insn, instructions, asmType)
                     OperationKind.TYPE_OF -> processTypeOf(insn, instructions, type)
+                    OperationKind.PLUGIN_DEFINED -> processPluginDefined(insn, instructions, type, asmType)
                 }
             ) {
                 instructions.remove(insn.previous.previous!!) // PUSH operation ID
@@ -187,6 +196,20 @@ class ReifiedTypeInliner<KT : KotlinTypeMarker>(
             instructions.set(insn.previous!!, LdcInsnNode(newReificationArgument.asString()))
             return mapping.reificationArgument.parameterName
         }
+    }
+
+    private fun processPluginDefined(
+        insn: MethodInsnNode,
+        instructions: InsnList,
+        type: KT,
+        asmType: Type
+    ): Boolean {
+        return intrinsicsSupport.applyPluginDefinedReifiedOperationMarker(
+            insn,
+            instructions,
+            intrinsicsSupport.toKotlinType(type),
+            asmType
+        )
     }
 
     private fun reify(argument: ReificationArgument, replacementAsmType: Type, type: KT): Pair<Type, KT> =

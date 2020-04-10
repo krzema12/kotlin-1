@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.codegen.inline
 
 import org.jetbrains.kotlin.codegen.*
+import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -13,13 +14,17 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes.*
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
 import org.jetbrains.kotlin.types.model.TypeParameterMarker
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.Type.INT_TYPE
 import org.jetbrains.org.objectweb.asm.Type.VOID_TYPE
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
+import org.jetbrains.org.objectweb.asm.tree.InsnList
+import org.jetbrains.org.objectweb.asm.tree.MethodInsnNode
 
-class PsiInlineIntrinsicsSupport(private val state: GenerationState) : ReifiedTypeInliner.IntrinsicsSupport<KotlinType> {
+class PsiInlineIntrinsicsSupport(private val state: GenerationState, private val typeSystem: TypeSystemCommonBackendContext) :
+    ReifiedTypeInliner.IntrinsicsSupport<KotlinType> {
     override fun putClassInstance(v: InstructionAdapter, type: KotlinType) {
         DescriptorAsmUtil.putJavaLangClassInstance(v, state.typeMapper.mapType(type), type, state.typeMapper)
     }
@@ -57,4 +62,14 @@ class PsiInlineIntrinsicsSupport(private val state: GenerationState) : ReifiedTy
     }
 
     override fun toKotlinType(type: KotlinType): KotlinType = type
+
+    override fun applyPluginDefinedReifiedOperationMarker(
+        insn: MethodInsnNode,
+        instructions: InsnList,
+        type: KotlinType,
+        asmType: Type
+    ): Boolean {
+        return ExpressionCodegenExtension.getInstances(state.project)
+            .any { it.applyPluginDefinedReifiedOperationMarker(insn, instructions, type, asmType, state.typeMapper, typeSystem) }
+    }
 }
