@@ -68,8 +68,9 @@ class PsiInlineIntrinsicsSupport(private val state: GenerationState, private val
         instructions: InsnList,
         type: KotlinType,
         asmType: Type
-    ): Boolean {
+    ): Int {
         return ExpressionCodegenExtension.getInstances(state.project)
-            .any { it.applyPluginDefinedReifiedOperationMarker(insn, instructions, type, asmType, state.typeMapper, typeSystem) }
+            .map { it.applyPluginDefinedReifiedOperationMarker(insn, instructions, type, asmType, state.typeMapper, typeSystem, state.module) }
+            .maxOrNull() ?: -1
     }
 }
