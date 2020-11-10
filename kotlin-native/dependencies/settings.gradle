@@ -1,0 +1,15 @@
+buildscript {
+    apply from: "$rootDir/kotlin-native/gradle/kotlinGradlePlugin.gradle"
+
+    repositories {
+        maven {
+            url = 'https://cache-redirector.jetbrains.com/jcenter'
+        }
+    }
+    dependencies {
+        classpath project(":kotlinx-metadata-klib")
+        classpath project(":native:build-tools")
+        classpath project(":native:shared")
+        classpath project(":native:kotlin-native-utils")
+    }
+}

@@ -12,17 +12,6 @@ import org.jetbrains.kotlin.konan.util.ArchiveType
 import org.jetbrains.kotlin.konan.util.DependencyProcessor
 
 import static org.jetbrains.kotlin.konan.util.VisibleNamedKt.getVisibleName
-
-buildscript {
-    apply from: "$rootDir/gradle/kotlinGradlePlugin.gradle"
-
-    repositories {
-        maven {
-            url = 'https://cache-redirector.jetbrains.com/jcenter'
-        }
-    }
-}
-
 /**
  * Downloads dependencies from the given URL into the given directory.
  * The set of dependencies is determined by konanPropertiesLoader.
@@ -75,7 +64,7 @@ enum DependencyKind {
     String toString() { return name }
 }
 
-def platformManager = rootProject.ext.platformManager
+def platformManager = project(":kotlin-native").ext.platformManager
 
 
 platformManager.filteredOutEnabledButNotSupported.each { target ->
@@ -87,7 +76,7 @@ platformManager.filteredOutEnabledButNotSupported.each { target ->
 
     // Also resolves all dependencies:
     final DependencyProcessor dependencyProcessor = new DependencyProcessor(
-            project.rootProject.ext.dependenciesDir,
+            project(":kotlin-native").ext.dependenciesDir,
             loader.properties,
             loader.dependencies,
             NativeDep.baseUrl,

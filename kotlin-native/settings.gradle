@@ -15,32 +15,32 @@
  * limitations under the License.
  */
 
-include ':dependencies'
-include ':Interop:Indexer'
-include ':Interop:JsRuntime'
-include ':Interop:StubGenerator'
-include ':Interop:Runtime'
-include ':llvmCoverageMappingC'
-include ':llvmDebugInfoC'
-include ':libclangext'
-include ':klib'
-include ':backend.native'
-include ':runtime'
-include ':common'
-include ':backend.native:tests'
-include ':backend.native:debugger-tests'
-include ':utilities:basic-utils'
-include ':utilities:cli-runner'
-include ':dependencyPacker'
-
-include ':performance'
-include ':performance:ring'
-include ':performance:cinterop'
-include ':performance:helloworld'
-include ':performance:numerical'
-include ':performance:videoplayer'
-include ':performance:framework'
-include ':performance:startup'
+//include ':dependencies'
+//include ':Interop:Indexer'
+//include ':Interop:JsRuntime'
+//include ':Interop:StubGenerator'
+//include ':Interop:Runtime'
+//include ':llvmCoverageMappingC'
+//include ':llvmDebugInfoC'
+//include ':libclangext'
+//include ':klib'
+//include ':backend.native'
+//include ':runtime'
+//include ':common'
+//include ':backend.native:tests'
+//include ':backend.native:debugger-tests'
+//include ':utilities:basic-utils'
+//include ':utilities:cli-runner'
+//include ':dependencyPacker'
+//
+//include ':performance'
+//include ':performance:ring'
+//include ':performance:cinterop'
+//include ':performance:helloworld'
+//include ':performance:numerical'
+//include ':performance:videoplayer'
+//include ':performance:framework'
+//include ':performance:startup'
 if (System.getProperty("os.name") == "Mac OS X") {
     include ':performance:objcinterop'
     include ':performance:swiftinterop'
@@ -50,9 +50,9 @@ if (System.getProperty("os.name") == "Mac OS X") {
     }
 }
 
-include ':platformLibs'
-include ':endorsedLibraries'
-include ':endorsedLibraries:kotlinx.cli'
+//include ':platformLibs'
+//include ':endorsedLibraries'
+//include ':endorsedLibraries:kotlinx.cli'
 
 if (hasProperty("kotlinProjectPath")) {
     include ':runtime:generator'
@@ -71,7 +71,7 @@ if (hasProperty("kotlinProjectPath")) {
     }
 }
 
-includeBuild 'shared'
-includeBuild 'build-tools'
-includeBuild 'tools/kotlin-native-gradle-plugin'
+//includeBuild 'shared'
+//includeBuild 'build-tools'
+//includeBuild 'tools/kotlin-native-gradle-plugin'
 

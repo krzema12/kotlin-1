@@ -6,10 +6,13 @@ ext.distDir = file("$rootBuildDirectory/dist")
 
 def rootProperties = new Properties()
 def rootDir = file(rootBuildDirectory).absolutePath
-file("$rootDir/gradle.properties").withReader {
+def propertyFile = file("$rootDir/gradle.properties")
+propertyFile.withReader {
     rootProperties.load(it)
 }
+println(propertyFile.absolutePath)
 rootProperties.each { k, v ->
+    println("[$k] = $v")
     if (!project.hasProperty(k)) {
         ext.set(k, v)
     }

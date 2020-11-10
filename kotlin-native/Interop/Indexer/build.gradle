@@ -14,16 +14,6 @@
  * limitations under the License.
  */
 
-buildscript {
-    ext.rootBuildDirectory = file('../..')
-
-    apply from: "$rootBuildDirectory/gradle/kotlinGradlePlugin.gradle"
-
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-        classpath "org.jetbrains.kotlin:kotlin-native-shared:$konanVersion"
-    }
-}
 apply plugin: 'kotlin'
 apply plugin: org.jetbrains.kotlin.NativeInteropPlugin
 
@@ -32,7 +22,7 @@ apply plugin: 'cpp'
 
 import org.jetbrains.kotlin.konan.target.ClangArgs
 
-final Project libclangextProject = project(":libclangext")
+final Project libclangextProject = project(":kotlin-native:libclangext")
 final String libclangextTask = libclangextProject.path + ":build"
 File libclangextDir = new File(libclangextProject.buildDir, "libs/clangext/static")
 final boolean libclangextIsEnabled = libclangextProject.isEnabled
@@ -46,7 +36,7 @@ if (isWindows()) {
 
 List<String> cflags = [
         "-I$llvmDir/include",
-        "-I${project(":libclangext").projectDir.absolutePath + "/src/main/include"}"
+        "-I${project(":kotlin-native:libclangext").projectDir.absolutePath + "/src/main/include"}"
 ]*.toString()
 
 List<String> ldflags = ["$llvmDir/$libclang", "-L$libclangextDir.absolutePath", "-lclangext"]*.toString()
@@ -111,15 +101,15 @@ sourceSets {
     }
 }
 
-repositories {
-    maven {
-        url buildKotlinCompilerRepo
-    }
-}
+//repositories {
+//    maven {
+//        url buildKotlinCompilerRepo
+//    }
+//}
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-    compile project(':Interop:Runtime')
+    compile project(":kotlin-stdlib")
+    compile project(':kotlin-native:Interop:Runtime')
 }
 
 task nativelibs(type: Copy) {
@@ -132,6 +122,7 @@ task nativelibs(type: Copy) {
 classes.dependsOn nativelibs
 
 kotlinNativeInterop {
+    
     clang {
         defFile 'clang.def'
         compilerOpts cflags

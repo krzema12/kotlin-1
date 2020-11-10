@@ -2,16 +2,17 @@ import org.jetbrains.kotlin.UtilsKt
 import org.jetbrains.kotlin.gradle.plugin.konan.tasks.KonanCacheTask
 import org.jetbrains.kotlin.EndorsedLibraryInfo
 
-buildscript {
-    repositories {
-        maven { url 'https://cache-redirector.jetbrains.com/jcenter' }
-        jcenter()
-    }
-
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-native-gradle-plugin:$gradlePluginVersion"
-    }
-}
+//buildscript {
+//    repositories {
+//        maven { url 'https://cache-redirector.jetbrains.com/jcenter' }
+//        jcenter()
+//        maven { url project.bootstrapKotlinRepo }
+//    }
+//
+//    dependencies {
+//        classpath "org.jetbrains.kotlin:kotlin-native-gradle-plugin:${project.bootstrapKotlinVersion}"
+//    }
+//}
 
 ext {
     endorsedLibraries = [

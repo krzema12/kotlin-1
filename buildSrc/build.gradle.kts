@@ -1,3 +1,5 @@
+import java.util.Properties
+
 extra["versions.native-platform"] = "0.14"
 
 buildscript {
@@ -37,6 +39,7 @@ logger.info("buildSrc stdlib version: " + KotlinVersion.CURRENT)
 apply {
     plugin("kotlin")
     plugin("kotlin-sam-with-receiver")
+    plugin("groovy")
 
     from("../gradle/checkCacheability.gradle.kts")
 }
@@ -68,6 +71,13 @@ fun Project.getBooleanProperty(name: String): Boolean? = this.findProperty(name)
 rootProject.apply {
     from(rootProject.file("../gradle/versions.gradle.kts"))
 }
+val rootProperties = Properties().apply {
+    rootDir.resolve("../kotlin-native/gradle.properties").reader().use(::load)
+}
+val slackApiVersion = rootProperties["slackApiVersion"]
+val ktorVersion = rootProperties["ktorVersion"]
+val shadowVersion = rootProperties["shadowVersion"]
+val metadataVersion = rootProperties["metadataVersion"]
 
 val isTeamcityBuild = kotlinBuildProperties.isTeamcityBuild
 val intellijUltimateEnabled by extra(kotlinBuildProperties.intellijUltimateEnabled)
@@ -87,6 +97,8 @@ repositories {
     jcenter()
     maven("https://jetbrains.bintray.com/intellij-third-party-dependencies/")
     maven("https://kotlin.bintray.com/kotlin-dependencies")
+    maven("https://kotlin.bintray.com/kotlinx")
+    maven("https://dl.bintray.com/kotlin/kotlin-dev")
     gradlePluginPortal()
 
     extra["bootstrapKotlinRepo"]?.let {
@@ -112,6 +124,26 @@ dependencies {
     implementation("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.5")
 
     implementation("org.gradle:test-retry-gradle-plugin:1.1.9")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:${project.bootstrapKotlinVersion}")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:${project.bootstrapKotlinVersion}")
+    //api("org.jetbrains.kotlin:kotlin-native-utils:${project.bootstrapKotlinVersion}")
+    api("org.jetbrains.kotlin:kotlin-util-klib:${project.bootstrapKotlinVersion}")
+
+    compileOnly(gradleApi())
+
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${project.bootstrapKotlinVersion}")
+    implementation("com.ullink.slack:simpleslackapi:$slackApiVersion")
+
+    implementation("io.ktor:ktor-client-auth:$ktorVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+
+    api("org.jetbrains.kotlin:kotlin-native-utils:${project.bootstrapKotlinVersion}")
+    implementation("com.github.jengelman.gradle.plugins:shadow:$shadowVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-klib:$metadataVersion")
+    implementation ("junit:junit:4.12")
+    implementation ("org.jetbrains.kotlin:kotlin-test:${project.bootstrapKotlinVersion}")
+    implementation ("org.jetbrains.kotlin:kotlin-test-junit:${project.bootstrapKotlinVersion}")
 }
 
 samWithReceiver {
@@ -125,8 +157,34 @@ java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
-
+tasks.validatePlugins.configure {
+    enabled = false
+}
 tasks["build"].dependsOn(":prepare-deps:build")
+
+sourceSets["main"].withConvention(org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet::class) {
+    kotlin.srcDir("src/main/kotlin")
+    kotlin.srcDir("shared/src/library/kotlin")
+    kotlin.srcDir("shared/src/main/kotlin")
+    kotlin.srcDir("build-tools/src/main/kotlin")
+    kotlin.srcDir("../kotlin-native/tools/kotlin-native-gradle-plugin/src/main/kotlin")
+    //kotlin.srcDir(generateCompilerVersion.get().getVersionSourceDirectory())
+}
+
+
+sourceSets["main"].withConvention(org.gradle.api.tasks.GroovySourceSet::class) {
+    groovy.srcDir("build-tools/src/main/groovy")
+}
+
+//tasks.named("compileGroovy", GroovyCompile::class.java) {
+//    classpath += project.files()
+//    //classpath = sourceSets["main"].compileClasspath
+//}
+
+tasks.named("compileGroovy", GroovyCompile::class.java) {
+    classpath += project.files(tasks.named("compileKotlin", org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java))
+    dependsOn(tasks.named("compileKotlin"))
+}
 
 allprojects {
     tasks.register("checkBuild")
