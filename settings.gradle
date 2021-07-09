@@ -61,8 +61,8 @@ gradleEnterprise {
 BuildCacheKt.setupBuildCache(settings)
 
 // modules
-include ":benchmarks",
-        ":compiler",
+//include ":benchmarks",  // todo: disabled because of missing dependency in repositories
+include ":compiler",
         ":compiler:util",
         ":compiler:config",
         ":compiler:config.jvm",
