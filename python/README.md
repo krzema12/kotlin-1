@@ -51,9 +51,11 @@ Also, set the number of `maxParallelForks` for `projectTest` in `buildSrc/src/ma
 
 ### Test stats
 
-Current status: ![coverage](http://www.yarntomato.com/percentbarmaker/button.php?barPosition=20&leftFill=) (**1051**/5368 passed)
+Current status: ![coverage](http://www.yarntomato.com/percentbarmaker/button.php?barPosition=20&leftFill=) (**1058**/5368 passed)
 
 ### History (newest on top)
+
+* after supporting when statements: **1058**/5368 passed (+7)
 
 * after removing empty variable declaration: **1051**/5368 passed (+3)
 
