@@ -96,18 +96,15 @@ class IrElementToPyStatementTransformer : BaseIrElementToPyNodeTransformer<List<
 
     override fun visitVariable(declaration: IrVariable, context: JsGenerationContext): List<stmt> {
         // TODO
-        return listOf(declaration.initializer?.let { initializer ->
+        return declaration.initializer?.let { initializer ->
             Assign(
                 targets = listOf(Name(id = identifier(declaration.name.identifier.toValidPythonSymbol()), ctx = Store)),
                 value = IrElementToPyExpressionTransformer().visitExpression(initializer, context).first(),
                 type_comment = null,
             )
-        } ?: Expr(
-            value = Name(
-                id = identifier(declaration.name.identifier.toValidPythonSymbol()),
-                ctx = Load,
-            ),
-        ))
+        }
+            ?.let(::listOf)
+            ?: emptyList()
     }
 
     override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, context: JsGenerationContext): List<stmt> {
@@ -136,15 +133,35 @@ class IrElementToPyStatementTransformer : BaseIrElementToPyNodeTransformer<List<
     }
 
     override fun visitWhen(expression: IrWhen, context: JsGenerationContext): List<stmt> {
-        return expression.branches.map { branch ->
-            If(
-                test = IrElementToPyExpressionTransformer().visitExpression(branch.condition, context).first(),
-                body = IrElementToPyStatementTransformer().visitExpression(branch.result, context),
-                orelse = emptyList(), // TODO
-            )
-        }
-        // TODO
-//        return listOf(Expr(value = Name(id = identifier("visitWhen-inToPyStatementTransformer $expression"), ctx = Load)))
+        return listOf(
+            expression
+                .branches
+                .map { branch ->
+                    If(
+                        test = IrElementToPyExpressionTransformer().visitExpression(branch.condition, context).first(),
+                        body = IrElementToPyStatementTransformer().visitExpression(branch.result, context),
+                        orelse = emptyList(),
+                    )
+                }
+                .reduceRight { iff, acc ->
+                    val accTest = acc.test
+
+                    if (accTest is Constant && accTest.value.value == "True") {
+                        // optimization
+                        If(
+                            test = iff.test,
+                            body = iff.body,
+                            orelse = acc.body,
+                        )
+                    } else {
+                        If(
+                            test = iff.test,
+                            body = iff.body,
+                            orelse = listOf(acc),
+                        )
+                    }
+                }
+        )
     }
 
     override fun visitWhileLoop(loop: IrWhileLoop, context: JsGenerationContext): List<stmt> {
